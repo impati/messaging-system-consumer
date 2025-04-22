@@ -23,9 +23,8 @@ public class SimpleMessagingSystemConsumer<T> implements MessagingSystemConsumer
     @SuppressWarnings("unchecked")
     public Mono<List<T>> consume(Channel channel) {
         String consumerId = subscription.consumerId(channel);
-
         return webClient.get()
-                .uri(uriBuilder -> uriBuilder.host(properties.url()).path("/v1/consume/{consumerId}").build(consumerId))
+                .uri(properties.url() + "/v1/consume/" + consumerId)
                 .retrieve()
                 .bodyToMono(MessageResponses.class)
                 .map(responses ->
