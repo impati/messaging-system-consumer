@@ -27,22 +27,20 @@ public class Initializer {
 
         // 클라이언트 등록
         // clientId 를 저장하고 있어야함.
-        client.get()
+
+        Client.clientId = client.get()
                 .uri(properties.url() + "/v1/client?clientName=" + properties.clientName())
-                .exchangeToMono(clientResponse -> {
-                    if (clientResponse.statusCode() == HttpStatus.NOT_FOUND) {
+                .exchangeToMono(clientResponse1 -> {
+                    if (clientResponse1.statusCode() == HttpStatus.NOT_FOUND) {
                         return client.post()
                                 .uri(properties.url() + "/v1/client?clientName=" + properties.clientName())
                                 .retrieve()
                                 .bodyToMono(String.class);
                     }
 
-                    return clientResponse.bodyToMono(String.class);
+                    return clientResponse1.bodyToMono(String.class);
                 })
-                .doOnNext(clientId -> Client.clientId = clientId)
-                .doOnError(e -> System.out.println("Client 등록 실패" + e))
-                .subscribe();
-
+                .block();
         System.out.println("clientId = " + Client.clientId);
 
         // 채널을 구독
