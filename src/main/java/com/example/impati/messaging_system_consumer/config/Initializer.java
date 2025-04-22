@@ -13,11 +13,13 @@ public class Initializer {
     private final WebClient client;
     private final Properties properties;
     private final ChannelBuilder channelBuilder;
+    private final Subscription subscription;
 
-    public Initializer(WebClient client, Properties properties, ChannelBuilder channelBuilder) {
+    public Initializer(WebClient client, Properties properties, ChannelBuilder channelBuilder, Subscription subscription) {
         this.client = client;
         this.properties = properties;
         this.channelBuilder = channelBuilder;
+        this.subscription = subscription;
     }
 
     public void initialize() {
@@ -26,8 +28,8 @@ public class Initializer {
         // clientId 를 저장하고 있어야함.
         client.get()
                 .uri(properties.url() + "/v1/client?clientName=" + properties.clientName())
-                .exchangeToMono(clientResponse ->{
-                    if(clientResponse.statusCode() == HttpStatus.NOT_FOUND) {
+                .exchangeToMono(clientResponse -> {
+                    if (clientResponse.statusCode() == HttpStatus.NOT_FOUND) {
                         return client.post()
                                 .uri(properties.url() + "/v1/client?clientName=" + properties.clientName())
                                 .retrieve()
@@ -42,12 +44,11 @@ public class Initializer {
         // consumerId 를 저장하고 있어야함.
         ChannelProvider channelProvider = channelBuilder.build();
         List<Channel> channels = channelProvider.getAll();
-        Subscription subscription = new Subscription();
-        for(Channel channel : channels) {
+        for (Channel channel : channels) {
             client.get()
                     .uri("/v1/channels/" + channel.name() + "/message-subscribe?clientId=" + Client.clientId)
                     .exchangeToMono(clientResponse -> {
-                        if(clientResponse.statusCode() == HttpStatus.NOT_FOUND) {
+                        if (clientResponse.statusCode() == HttpStatus.NOT_FOUND) {
                             return client.post()
                                     .uri("/v1/channels/" + channel.name() + "/message-subscribe?clientId=" + Client.clientId)
                                     .retrieve()
@@ -56,7 +57,7 @@ public class Initializer {
 
                         return clientResponse.bodyToMono(SubscribeResponse.class);
                     })
-                    .subscribe(response -> subscription.add(channel,response.consumerId));
+                    .subscribe(response -> subscription.add(channel, response.consumerId));
         }
     }
 
