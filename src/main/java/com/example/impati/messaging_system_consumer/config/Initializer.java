@@ -49,11 +49,11 @@ public class Initializer {
         List<Channel> channels = channelProvider.getAll();
         for (Channel channel : channels) {
             client.get()
-                    .uri("/v1/channels/" + channel.name() + "/message-subscribe?clientId=" + Client.clientId)
+                    .uri(properties.url() + "/v1/channels/" + channel.name() + "/message-subscribe?clientId=" + Client.clientId)
                     .exchangeToMono(clientResponse -> {
                         if (clientResponse.statusCode() == HttpStatus.NOT_FOUND) {
                             return client.post()
-                                    .uri("/v1/channels/" + channel.name() + "/message-subscribe?clientId=" + Client.clientId)
+                                    .uri(properties.url() + "/v1/channels/" + channel.name() + "/message-subscribe?clientId=" + Client.clientId)
                                     .retrieve()
                                     .bodyToMono(SubscribeResponse.class);
                         }
