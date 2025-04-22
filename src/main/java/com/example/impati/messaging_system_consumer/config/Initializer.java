@@ -23,6 +23,7 @@ public class Initializer {
     }
 
     public void initialize() {
+        System.out.println("initialize");
 
         // 클라이언트 등록
         // clientId 를 저장하고 있어야함.
@@ -38,7 +39,11 @@ public class Initializer {
 
                     return clientResponse.bodyToMono(String.class);
                 })
-                .subscribe(clientId -> Client.clientId = clientId);
+                .doOnNext(clientId -> Client.clientId = clientId)
+                .doOnError(e -> System.out.println("Client 등록 실패" + e))
+                .subscribe();
+
+        System.out.println("clientId = " + Client.clientId);
 
         // 채널을 구독
         // consumerId 를 저장하고 있어야함.
@@ -57,7 +62,8 @@ public class Initializer {
 
                         return clientResponse.bodyToMono(SubscribeResponse.class);
                     })
-                    .subscribe(response -> subscription.add(channel, response.consumerId));
+                    .doOnNext(response -> subscription.add(channel, response.consumerId))
+                    .subscribe();
         }
     }
 
