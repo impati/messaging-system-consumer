@@ -53,7 +53,8 @@ public class Initializer {
                     .exchangeToMono(clientResponse -> {
                         if (clientResponse.statusCode() == HttpStatus.NOT_FOUND) {
                             return client.post()
-                                    .uri(properties.url() + "/v1/channels/" + channel.name() + "/message-subscribe?clientId=" + Client.clientId)
+                                    .uri(properties.url() + "/v1/channels/" + channel.name() + "/message-subscribe")
+                                    .bodyValue(new SubscribeRequest(Client.clientId))
                                     .retrieve()
                                     .bodyToMono(SubscribeResponse.class);
                         }
@@ -63,6 +64,10 @@ public class Initializer {
                     .doOnNext(response -> subscription.add(channel, response.consumerId))
                     .subscribe();
         }
+    }
+
+    record SubscribeRequest(String clientId) {
+
     }
 
     record SubscribeResponse(String consumerId, String clientId) {
