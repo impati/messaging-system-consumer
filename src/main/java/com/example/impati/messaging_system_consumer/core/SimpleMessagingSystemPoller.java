@@ -8,7 +8,7 @@ public class SimpleMessagingSystemPoller<T> implements MessagingSystemPoller {
     private final MessagingSystemConsumer<T> messagingSystemConsumer;
     private final MessagingSystemListener<T> messagingSystemListener;
 
-    protected SimpleMessagingSystemPoller(MessagingSystemConsumer<T> messagingSystemConsumer, MessagingSystemListener<T> messagingSystemListener) {
+    public SimpleMessagingSystemPoller(MessagingSystemConsumer<T> messagingSystemConsumer, MessagingSystemListener<T> messagingSystemListener) {
         this.messagingSystemConsumer = messagingSystemConsumer;
         this.messagingSystemListener = messagingSystemListener;
     }
