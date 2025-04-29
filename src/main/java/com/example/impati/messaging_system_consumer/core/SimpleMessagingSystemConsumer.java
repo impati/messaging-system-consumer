@@ -1,51 +1,42 @@
 package com.example.impati.messaging_system_consumer.core;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.function.Function;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 public class SimpleMessagingSystemConsumer<T> implements MessagingSystemConsumer<T> {
 
     private final WebClient webClient;
-    private final Function<JsonNode, T> converter;
 
     public SimpleMessagingSystemConsumer(WebClient.Builder webClientBuilder,
-                                         MessagingSystemProperties properties,
-                                         Function<JsonNode, T> converter) {
+                                         MessagingSystemProperties properties) {
         this.webClient = webClientBuilder.baseUrl(properties.url()).build();
-        this.converter = converter;
     }
 
     public Mono<List<T>> consume(Channel channel) {
-        Client instance = Client.getInstance();
-        String consumerId = instance.getConsumerId(channel);
+        String consumerId = Client.getInstance().getConsumerId(channel);
         return webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/v1/consume/" + consumerId)
-                        .build())
+                .uri("/v1/consume/{id}", consumerId)
                 .retrieve()
-                .bodyToMono(MessageResponses.class)
-                .map(responses ->
-                        responses.messages().stream()
-                                .map(MessageResponse::data)
-                                .map(converter)
-                                .toList()
-                );
+                .bodyToMono(new ParameterizedTypeReference<MessageResponses<T>>() {
+                })
+                .flatMapIterable(MessageResponses::messages)
+                .map(MessageResponse::data)
+                .collectList();
     }
 
-    record MessageResponses(
-            List<MessageResponse> messages
+    record MessageResponses<T>(
+            List<MessageResponse<T>> messages
     ) {
 
     }
 
-    record MessageResponse(
+    record MessageResponse<T>(
             LocalDateTime createdAt,
 
-            JsonNode data
+            T data
     ) {
 
     }
