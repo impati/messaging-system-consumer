@@ -2,7 +2,7 @@ package com.example.impati.messaging_system_consumer.core;
 
 import reactor.core.publisher.Flux;
 
-public interface MessagingSystemConsumer {
+public interface MessagingSystemConsumer<T> {
 
-    <T> Flux<T> consume(Channel channel, Class<T> bodyType);
+    Flux<T> consume(Channel channel, Class<T> bodyType);
 }

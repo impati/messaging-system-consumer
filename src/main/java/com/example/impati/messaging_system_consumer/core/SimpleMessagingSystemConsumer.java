@@ -6,7 +6,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
-public class SimpleMessagingSystemConsumer implements MessagingSystemConsumer {
+public class SimpleMessagingSystemConsumer<T> implements MessagingSystemConsumer<T> {
 
     private final WebClient webClient;
 
@@ -16,7 +16,7 @@ public class SimpleMessagingSystemConsumer implements MessagingSystemConsumer {
     }
 
     @Override
-    public <T> Flux<T> consume(Channel channel, Class<T> bodyType) {
+    public Flux<T> consume(final Channel channel, final Class<T> bodyType) {
         String consumerId = Client.getInstance().getConsumerId(channel);
 
         ParameterizedTypeReference<MessageResponses<T>> typeRef = new ParameterizedTypeReference<>() {
