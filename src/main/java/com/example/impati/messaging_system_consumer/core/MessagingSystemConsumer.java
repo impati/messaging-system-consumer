@@ -1,9 +1,8 @@
 package com.example.impati.messaging_system_consumer.core;
 
-import java.util.List;
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
-public interface MessagingSystemConsumer<T> {
+public interface MessagingSystemConsumer {
 
-    Mono<List<T>> consume(Channel channel);
+    <T> Flux<T> consume(Channel channel, Class<T> bodyType);
 }

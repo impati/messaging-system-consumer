@@ -1,42 +1,33 @@
 package com.example.impati.messaging_system_consumer.core;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import java.time.LocalDateTime;
 import java.util.List;
-import org.springframework.core.ResolvableType;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
-public class SimpleMessagingSystemConsumer<T> implements MessagingSystemConsumer<T> {
+public class SimpleMessagingSystemConsumer implements MessagingSystemConsumer {
 
     private final WebClient webClient;
-    private final ObjectMapper objectMapper;
-    private final JavaType dataType;
 
     public SimpleMessagingSystemConsumer(WebClient.Builder webClientBuilder,
-                                         MessagingSystemProperties properties,
-                                         ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+                                         MessagingSystemProperties properties) {
         this.webClient = webClientBuilder.baseUrl(properties.url()).build();
-        this.dataType = TypeFactory.defaultInstance().constructType(
-                ResolvableType.forClass(SimpleMessagingSystemConsumer.class, getClass())
-                        .getGeneric(0)
-                        .getType());
     }
 
-    @SuppressWarnings("unchecked")
-    public Mono<List<T>> consume(Channel channel) {
+    @Override
+    public <T> Flux<T> consume(Channel channel, Class<T> bodyType) {
         String consumerId = Client.getInstance().getConsumerId(channel);
+
+        ParameterizedTypeReference<MessageResponses<T>> typeRef = new ParameterizedTypeReference<>() {
+        };
+
         return webClient.get()
                 .uri("/v1/consume/{id}", consumerId)
                 .retrieve()
-                .bodyToMono(MessageResponses.class)
-                .map(responses ->
-                        responses.messages().stream()
-                                .map(msg -> objectMapper.convertValue(msg, dataType))
-                                .toList());
+                .bodyToMono(typeRef)
+                .flatMapIterable(MessageResponses::messages)
+                .map(MessageResponse::data);
     }
 
     record MessageResponses<T>(

@@ -3,6 +3,7 @@ package com.example.impati.messaging_system_consumer.core;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class ChannelRegistration {
 
@@ -22,6 +23,13 @@ public class ChannelRegistration {
 
     public Channel getChannel(Class<?> clazz) {
         return channels.get(clazz);
+    }
+
+    public Class<?> typeFor(Channel channel) {
+        return channels.entrySet().stream().filter(it -> it.getValue().equals(channel))
+                .map(Entry::getKey)
+                .findFirst()
+                .orElseThrow();
     }
 
     public static class ChannelRegistrationBuilder {
