@@ -3,6 +3,7 @@ package com.example.impati.messaging_system_consumer.core;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.ResolvableType;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
@@ -19,8 +20,11 @@ public class SimpleMessagingSystemConsumer<T> implements MessagingSystemConsumer
     public Flux<T> consume(final Channel channel, final Class<T> bodyType) {
         String consumerId = Client.getInstance().getConsumerId(channel);
 
-        ParameterizedTypeReference<MessageResponses<T>> typeRef = new ParameterizedTypeReference<>() {
-        };
+        ResolvableType resolvableType = ResolvableType
+                .forClassWithGenerics(MessageResponses.class, bodyType);
+
+        ParameterizedTypeReference<MessageResponses<T>> typeRef =
+                ParameterizedTypeReference.forType(resolvableType.getType());
 
         return webClient.get()
                 .uri("/v1/consume/{id}", consumerId)
